@@ -4,7 +4,6 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import InterviewPrep from "./pages/InterviewPrep";
-import SignUp from './pages/SignUp';
 
 const App = () => {
   return (
