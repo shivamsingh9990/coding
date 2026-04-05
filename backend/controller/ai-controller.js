@@ -9,7 +9,13 @@ import {
   questionAnswerPrompt,
 } from "../utils/prompts-util.js";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const rawApiKey = process.env.GEMINI_API_KEY?.trim();
+const invalidApiKeyPatterns = [/your_gemini_api_key_here/i, /your_gemini_api_key/i, /your_.+_key/i];
+const apiKey =
+  rawApiKey && !invalidApiKeyPatterns.some((pattern) => pattern.test(rawApiKey))
+    ? rawApiKey
+    : null;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // @desc    Generate + SAVE interview questions for a session
 // @route   POST /api/ai/generate-questions
@@ -41,6 +47,13 @@ export const generateInterviewQuestions = async (req, res) => {
 
     const { role, experience, topicsToFocus } = session;
     console.log("session: ", session);
+
+    if (!ai) {
+      return res.status(500).json({
+        success: false,
+        message: "GEMINI_API_KEY is not configured in the backend environment",
+      });
+    }
 
     //? 2. generate via Gemini
     const prompt = questionAnswerPrompt(role, experience, topicsToFocus, 10);
@@ -92,9 +105,20 @@ export const generateInterviewQuestions = async (req, res) => {
     res.status(201).json({ success: true, data: saved });
   } catch (error) {
     console.error(error);
+
+    let friendlyMessage = "Failed to generate questions";
+    if (
+      error.message.includes("default credentials") ||
+      error.message.includes("API key should be set") ||
+      error.message.includes("Could not load the default credentials")
+    ) {
+      friendlyMessage =
+        "Gemini authentication failed. Please set a valid GEMINI_API_KEY in backend/.env.";
+    }
+
     res.status(500).json({
       success: false,
-      message: "Failed to generate questions",
+      message: friendlyMessage,
       error: error.message,
     });
   }

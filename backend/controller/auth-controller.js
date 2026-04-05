@@ -4,7 +4,12 @@ import User from "../models/user-model.js";
 
 // Generate JWT Token
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error("JWT_SECRET is not defined in the environment");
+  }
+
+  return jwt.sign({ id: userId }, jwtSecret, {
     expiresIn: "7d",
   });
 };
