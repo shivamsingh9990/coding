@@ -13,7 +13,8 @@ const app = express(); //object ={listen}
 // 4.)decalre routes -> app.http_method ('endpoint',callback)
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://your-frontend.onrender.com"],
+    credentials: true,
   }),
 );
 app.use(express.urlencoded({ extended: true })); //this
